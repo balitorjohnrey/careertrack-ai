@@ -1,6 +1,6 @@
 # CareerTrack AI
 
-A student job application assistant built with Next.js, React and PostgreSQL. Students manage their own opportunities, application stages, deadlines, résumé information and reviewed AI feedback. The hosted configuration uses Supabase Auth and Postgres, server-side OpenAI requests and Vercel.
+A student job application assistant built with Next.js, React and PostgreSQL. Students manage their own opportunities, application stages, deadlines, résumé information and reviewed AI feedback. Both local and hosted accounts support server-side AI requests to Groq or OpenAI.
 
 ## Try it on your computer
 
@@ -14,6 +14,8 @@ npm.cmd run dev
 Open the local address printed in the terminal, usually **http://127.0.0.1:3000**. Choose **Explore the demo** for a private workspace with five fictional applications. Choose **Create account** for a persistent, initially empty workspace. Start only one local server against the same data directory at a time.
 
 Local mode stores data in the ignored `.local/postgres` folder on this computer. It uses embedded PostgreSQL (PGlite), the same application migration as the hosted version, password hashing and expiring HTTP-only session cookies. Demo accounts have no sign-in password. Personal accounts can sign out and sign back in. Local data and accounts stay on this machine when you connect Supabase. For a local administration walkthrough, set `CAREERTRACK_LOCAL_ADMIN_EMAIL` in `.env.local` to your own local account email, restart the app and sign in again. This setting applies only to local accounts.
+
+For live feedback during local development, set `GROQ_API_KEY` in `.env.local`, restart the server, and open **AI feedback studio**. The notice shows the provider and the fields used by the selected action. Try all three actions using **Explore the demo** for fictional résumé and application data. Only the generated answer is shown for review. [Groq API keys](https://console.groq.com/keys)
 
 ## Student workflows
 
@@ -32,7 +34,7 @@ The optional **Administration** screen provides aggregate counts, completeness, 
 
 1. **Supabase.** Create a project your team controls. In its SQL Editor, run `supabase/migrations/001_careertrack.sql` once on a fresh application database. It creates the five application tables, owner-only read policies, scoped database functions and private operational tables for quotas, reminders and audit events. Enable the Data API with the public schema available. Enable email/password authentication. Set the Auth Site URL to your final HTTPS sign-in page and configure permitted redirects for your deployment. Configure confirmation email delivery for your pilot participants. [Supabase password authentication](https://supabase.com/docs/guides/auth/passwords) · [Email delivery](https://supabase.com/docs/guides/auth/auth-smtp)
 2. **Environment.** Copy `.env.example` to `.env.local` for local integration testing. Enter the project URL and publishable key from Supabase. The server uses the signed-in user's token for each database call. No service-role key is required. [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys)
-3. **Live AI.** Create an OpenAI API project and key under the team's account. Approve the budget with the team and configure usage alerts. Put the key in `OPENAI_API_KEY` in the server environment. The default model is `gpt-4o-mini`. The API key can also enable AI with local accounts. Restart after editing local variables. [OpenAI API keys](https://platform.openai.com/api-keys)
+3. **Live AI.** Set `GROQ_API_KEY` in the server environment to use Groq. Installations using only `OPENAI_API_KEY` continue to use OpenAI. A configured Groq key takes precedence, and a failed request stays with the selected provider. Restart the local server or redeploy after changing variables.
 4. **GitHub and Vercel.** Give the team access to its GitHub repository and connect it to a Vercel project. Choose the Next.js preset, the repository root, and `main` as the production branch. Supply the same environment variable names in Vercel for Preview and Production. Use a separate Supabase project and test key for previews containing test data. Redeploy after setting variables. Review feature changes on a preview before merging into `dev`, then review `dev` for release to `main`. [Next.js on Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs)
 5. **Administrator.** Have your designated maintainer register and confirm their email. Copy their user UUID from Supabase Authentication. Run the following in the project's SQL Editor with that actual UUID. Their next page load will show Administration.
 
@@ -46,8 +48,10 @@ where id = 'YOUR-CONFIRMED-USER-UUID'::uuid;
 | --- | --- |
 | `SUPABASE_URL` | Your Supabase project's HTTPS URL |
 | `SUPABASE_PUBLISHABLE_KEY` | Project publishable key |
-| `OPENAI_API_KEY` | Team's server-side API key for live drafts |
-| `OPENAI_MODEL` | Optional model override compatible with Chat Completions |
+| `GROQ_API_KEY` | Team's server-side Groq key for live drafts |
+| `GROQ_MODEL` | Optional Groq model override, default `openai/gpt-oss-20b` hosted by Groq |
+| `OPENAI_API_KEY` | Alternative server-side OpenAI key |
+| `OPENAI_MODEL` | Optional OpenAI model override, default `gpt-4o-mini` |
 
 Keep secrets in the local ignored environment file or Vercel's server environment. In each Git checkout, use `git config core.hooksPath .githooks` to enable the included pre-push credential check.
 
@@ -64,6 +68,6 @@ npm.cmd test
 npm.cmd run build
 ```
 
-The automated suite runs the actual migration in embedded PostgreSQL. It covers ownership, row policies, atomic application edits, reminders, account deletion, administrator permissions, rate limits and AI input minimization. Provider adapter tests use simulated Supabase Auth and OpenAI responses. Run a real email-confirmation flow and all three AI actions after connecting the team's accounts.
+The automated suite runs the actual migration in embedded PostgreSQL. It covers ownership, row policies, atomic application edits, reminders, account deletion, administrator permissions, rate limits and AI input minimization. Provider adapter tests use simulated Supabase Auth, Groq and OpenAI responses. Run a real email-confirmation flow and all three AI actions after connecting the team's accounts.
 
 For pilot measurements, use a dedicated pilot database or compare aggregate snapshots from the start and end of the pilot. The admin screen gives counts for completeness and timely acknowledgements. The team must collect timed-task results and satisfaction responses from consenting participants. Real instructor approval, evidence gathering, teammate review, the signed scope declaration and LMS submission belong to the team.

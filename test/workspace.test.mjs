@@ -190,10 +190,13 @@ test('AI inputs minimize fields, redact identifiers, calculate progress and reje
   assert.equal(progress.skills, undefined);
   assert.throws(() => buildAIInput('resume', ws, user, 'foreign'));
   const savedKey = process.env.OPENAI_API_KEY;
+  const savedGroqKey = process.env.GROQ_API_KEY;
   delete process.env.OPENAI_API_KEY;
+  delete process.env.GROQ_API_KEY;
   try {
     await assert.rejects(generateDraft(user, { kind: 'resume' }, ws), { status: 503 });
   } finally {
     if (savedKey !== undefined) process.env.OPENAI_API_KEY = savedKey;
+    if (savedGroqKey !== undefined) process.env.GROQ_API_KEY = savedGroqKey;
   }
 });

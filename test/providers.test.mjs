@@ -6,13 +6,15 @@ import { today } from '../lib/domain.mjs';
 
 test('hosted adapters use scoped sessions and generate, reuse and fail drafts without mutating records', async (t) => {
   const previous = Object.fromEntries(
-    ['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'OPENAI_API_KEY'].map((k) => [k, process.env[k]]),
+    ['SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'OPENAI_API_KEY', 'GROQ_API_KEY', 'GROQ_MODEL'].map((k) => [k, process.env[k]]),
   );
   Object.assign(process.env, {
     SUPABASE_URL: 'https://project.example.test',
     SUPABASE_PUBLISHABLE_KEY: 'test-publishable',
     OPENAI_API_KEY: 'test-placeholder',
   });
+  delete process.env.GROQ_API_KEY;
+  delete process.env.GROQ_MODEL;
   t.after(() => {
     for (const [k, v] of Object.entries(previous))
       if (v === undefined) delete process.env[k];
@@ -53,11 +55,20 @@ test('hosted adapters use scoped sessions and generate, reuse and fail drafts wi
   };
   t.mock.method(globalThis, 'fetch', async (url, opts) => {
     const path = new URL(url).pathname;
-    if (path === '/v1/chat/completions') {
+    if (path.endsWith('/chat/completions')) {
       aiCalls++;
-      assert.equal(opts.headers.Authorization, 'Bearer test-placeholder');
       const payload = JSON.parse(opts.body);
-      assert.equal(payload.store, false);
+      if (process.env.GROQ_API_KEY) {
+        assert.equal(url, 'https://api.groq.com/openai/v1/chat/completions');
+        assert.equal(opts.headers.Authorization, 'Bearer groq-test-placeholder');
+        assert.equal(payload.model, 'openai/gpt-oss-20b');
+        assert.equal(payload.reasoning_effort, 'low');
+        assert.equal(payload.store, undefined);
+      } else {
+        assert.equal(url, 'https://api.openai.com/v1/chat/completions');
+        assert.equal(opts.headers.Authorization, 'Bearer test-placeholder');
+        assert.equal(payload.store, false);
+      }
       assert.ok(payload.messages[0].content.includes('Never invent'));
       assert.doesNotMatch(payload.messages[1].content, /@example|student-id/);
       return Response.json(
@@ -111,9 +122,17 @@ test('hosted adapters use scoped sessions and generate, reuse and fail drafts wi
   }
   assert.equal(aiCalls, 3);
   assert.equal(reservations, 3);
+  process.env.GROQ_API_KEY = 'groq-test-placeholder';
+  await assert.rejects(generateDraft(signed, { kind: 'resume', provider: 'OpenAI' }, ws), { status: 409 });
+  for (const kind of ['skills', 'resume', 'progress']) {
+    const draft = await generateDraft(signed, { kind, provider: 'Groq', application_id: kind === 'skills' ? 'owned' : null }, ws);
+    assert.equal(draft.cached, false);
+    assert.equal(draft.kind, kind);
+  }
+  assert.equal(reservations, 6);
   limited = true;
   await assert.rejects(generateDraft(signed, { kind: 'progress' }, ws), { status: 503 });
   await assert.rejects(generateDraft(signed, { kind: 'progress' }, ws), { status: 503 });
   assert.equal(failures, 1);
-  assert.equal(aiCalls, 4);
+  assert.equal(aiCalls, 7);
 });

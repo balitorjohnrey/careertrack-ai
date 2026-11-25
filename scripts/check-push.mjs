@@ -14,7 +14,7 @@ for (const line of readFileSync(0, 'utf8').trim().split(/\r?\n/)) {
     if (hash) hashes.add(hash);
 }
 const secret =
-  /sk-(?:proj-)?[A-Za-z0-9_-]{25,}|sb_secret_[A-Za-z0-9_-]{10,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/;
+  /sk-(?:proj-)?[A-Za-z0-9_-]{25,}|gsk_[A-Za-z0-9_-]{25,}|sb_secret_[A-Za-z0-9_-]{10,}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/;
 for (const hash of hashes) {
   const patch = execFileSync('git', ['show', '--format=', '--no-ext-diff', '--unified=0', hash], {
     encoding: 'utf8',

@@ -113,7 +113,7 @@ function SavedItem({ item, onChange, ws }) {
     </article>
   );
 }
-export default function Feedback({ ws, applicationId, reload, notify }) {
+export default function Feedback({ ws, applicationId, providerName, reload, notify }) {
   const [kind, setKind] = useState('skills'),
     [target, setTarget] = useState(applicationId || ''),
     [draft, setDraft] = useState(null),
@@ -126,6 +126,7 @@ export default function Feedback({ ws, applicationId, reload, notify }) {
       const route = tools.find((row) => row[0] === kind)[3];
       const result = await api(route, {
         application_id: kind === 'progress' ? null : target || null,
+        provider: providerName,
         regenerate: regen,
       });
       setDraft(result);
@@ -200,7 +201,7 @@ export default function Feedback({ ws, applicationId, reload, notify }) {
             <div className="ai-notice">
               <Sparkles size={19} />
               <div>
-                <strong>What goes to OpenAI</strong>
+                <strong>What goes to {providerName}</strong>
                 <p>
                   {kind === 'progress'
                     ? 'Application counts by stage and up to eight upcoming role titles and deadlines.'

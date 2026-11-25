@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { today, displayDate, upcoming, daysLeft } from '../lib/domain.mjs';
 import { backendMode, getSession, rpc } from '../lib/server/backend.mjs';
+import { getAIProvider } from '../lib/server/ai.mjs';
 import { api, Brand } from '../components/common';
 import Public from '../components/Public';
 import { Applications, ApplicationEditor, DeadlinePage, Overview } from '../components/Tracker';
@@ -64,6 +65,7 @@ export async function getServerSideProps({ req, res, params, query }) {
         initial,
         user: { email: session.demo ? '' : session.email, demo: !!session.demo },
         day: today(),
+        aiProviderName: getAIProvider().name,
         applicationId: typeof query.application === 'string' ? query.application : null,
       },
     };
@@ -80,7 +82,7 @@ export async function getServerSideProps({ req, res, params, query }) {
     };
   }
 }
-function Workspace({ page, id, initial, user, applicationId, day }) {
+function Workspace({ page, id, initial, user, applicationId, aiProviderName, day }) {
   const router = useRouter(),
     [ws, setWs] = useState(initial),
     [menu, setMenu] = useState(false),
@@ -231,7 +233,7 @@ function Workspace({ page, id, initial, user, applicationId, day }) {
           ) : page === 'admin' ? (
             <Admin {...shared} />
           ) : (
-            <Feedback {...shared} applicationId={applicationId} />
+            <Feedback {...shared} applicationId={applicationId} providerName={aiProviderName} />
           )}
         </div>
         {toast && (
