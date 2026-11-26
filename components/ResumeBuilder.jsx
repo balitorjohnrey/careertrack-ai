@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { Download, PencilLine, Printer, Sparkles } from 'lucide-react';
 import { api, ErrorBox, Field, SectionHead, useAction } from './common';
-import { papers, resumeInput, resumeParagraphs, resumeSections } from '../lib/resume.mjs';
+import {
+  editorialColors,
+  papers,
+  resumeBodyParagraphs,
+  resumeHeaderParagraphs,
+  resumeInitials,
+  resumeInput,
+  resumeSections,
+} from '../lib/resume.mjs';
 
 const headerFields = [
   ['name', 'Full name', 100],
@@ -53,6 +61,71 @@ function PaperSelect({ value, onChange }) {
   );
 }
 
+function DesignPicker({ value, onChange }) {
+  return (
+    <fieldset className="resume-design-picker">
+      <legend>Résumé design</legend>
+      <div className="design-choices">
+        {['Editorial', 'Classic'].map((label) => {
+          const id = label.toLowerCase();
+          return (
+            <label className="design-choice" key={id}>
+              <input
+                type="radio"
+                name="resume-design"
+                value={id}
+                checked={value === id}
+                onChange={() => onChange(id)}
+              />
+              <span aria-hidden="true" className={'design-sample sample-' + id} />
+              <span>{label}</span>
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+function ResumePaper({ draft, design, paper }) {
+  const colors = Object.fromEntries(
+    Object.entries(editorialColors).map(([name, hex]) => ['--resume-' + name, '#' + hex]),
+  );
+  return (
+    <article
+      className={'resume-paper paper-' + paper + ' design-' + design}
+      style={colors}
+      aria-label="Résumé preview"
+    >
+      <header className="resume-masthead">
+        {design === 'editorial' && (
+          <span className="resume-initials" aria-hidden="true">
+            {resumeInitials(draft.header.name)}
+          </span>
+        )}
+        <div className="resume-identity">
+          {resumeHeaderParagraphs(draft.header).map(({ style, text }) => {
+            const Tag = style === 'name' ? 'h2' : 'p';
+            return (
+              <Tag key={style} className={'resume-' + style}>
+                {text}
+              </Tag>
+            );
+          })}
+        </div>
+      </header>
+      {resumeBodyParagraphs(draft.sections).map(({ style, text }, i) => {
+        const Tag = style === 'heading' ? 'h3' : 'p';
+        return (
+          <Tag key={i} className={'resume-' + style}>
+            {text}
+          </Tag>
+        );
+      })}
+    </article>
+  );
+}
+
 export default function ResumeBuilder({ ws, user, providerName }) {
   const [header, setHeader] = useState(() => ({
     name: ws.profile.full_name || '',
@@ -71,6 +144,7 @@ export default function ResumeBuilder({ ws, user, providerName }) {
     certifications: '',
   }));
   const [paper, setPaper] = useState('a4');
+  const [design, setDesign] = useState('editorial');
   const [draft, setDraft] = useState(null);
   const [view, setView] = useState('details');
   const { busy, error, setError, run } = useAction();
@@ -94,7 +168,7 @@ export default function ResumeBuilder({ ws, user, providerName }) {
   }
   async function downloadWord() {
     const { resumeWordBlob } = await import('../lib/resume-word.mjs');
-    const blob = await resumeWordBlob(draft.header, draft.sections, paper);
+    const blob = await resumeWordBlob(draft.header, draft.sections, paper, design);
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -119,11 +193,19 @@ export default function ResumeBuilder({ ws, user, providerName }) {
         />
         {view === 'details' ? (
           <form className="card edit-form" onSubmit={generate}>
-            <h2>Résumé header</h2>
-            <p className="card-note">
-              Enter your name and the contact details you want on the document.
-            </p>
-            <HeaderFields value={header} onChange={setHeader} />
+            <div className="builder-setup">
+              <div className="builder-identity">
+                <h2>Résumé header</h2>
+                <p className="card-note">
+                  Enter your name and the contact details you want on the document.
+                </p>
+                <HeaderFields value={header} onChange={setHeader} />
+              </div>
+              <div className="builder-design-panel">
+                <DesignPicker value={design} onChange={setDesign} />
+                <PaperSelect value={paper} onChange={setPaper} />
+              </div>
+            </div>
             <h2>Your background</h2>
             <p className="card-note">
               Fill in the sections that apply to you. Class projects and volunteer work count.
@@ -135,14 +217,13 @@ export default function ResumeBuilder({ ws, user, providerName }) {
                 hint={hints[key]}
               >
                 <textarea
-                  rows={key === 'experience' ? 4 : 2}
+                  rows={7}
                   maxLength={limit}
                   value={details[key]}
                   onChange={(e) => setDetails({ ...details, [key]: e.target.value })}
                 />
               </Field>
             ))}
-            <PaperSelect value={paper} onChange={setPaper} />
             <div className="ai-notice">
               <Sparkles size={19} />
               <div>
@@ -195,7 +276,7 @@ export default function ResumeBuilder({ ws, user, providerName }) {
             {resumeSections.map(({ key, title }) => (
               <Field key={key} label={title}>
                 <textarea
-                  rows={3}
+                  rows={7}
                   maxLength={6000}
                   value={draft.sections[key] || ''}
                   onChange={(e) =>
@@ -209,6 +290,7 @@ export default function ResumeBuilder({ ws, user, providerName }) {
           </form>
         ) : (
           <div className="card builder-toolbar">
+            <DesignPicker value={design} onChange={setDesign} />
             <PaperSelect value={paper} onChange={setPaper} />
             <div className="actions">
               <button className="button dark" disabled={busy} onClick={() => run(downloadWord)}>
@@ -237,16 +319,7 @@ export default function ResumeBuilder({ ws, user, providerName }) {
           <style media="print">
             {'@page { size: ' + papers[paper].css + '; margin: 0.75in; }'}
           </style>
-          <article className={'resume-paper paper-' + paper} aria-label="Résumé preview">
-            {resumeParagraphs(draft.header, draft.sections).map(({ style, text }, i) => {
-              const Tag = style === 'name' ? 'h2' : style === 'heading' ? 'h3' : 'p';
-              return (
-                <Tag key={i} className={'resume-' + style}>
-                  {text}
-                </Tag>
-              );
-            })}
-          </article>
+          <ResumePaper draft={draft} design={design} paper={paper} />
         </>
       )}
     </div>

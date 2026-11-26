@@ -25,7 +25,7 @@ For live AI during local development, set `GROQ_API_KEY` in `.env.local` and res
 | Applications | Add an employer, role and requirements or source link. Record location, saved/applied dates, deadline, notes and the résumé version. Search, filter, sort, edit or delete a record. |
 | Stages and deadlines | Move an application through Saved, Applied, Assessment, Interview, Offer, Rejected or Withdrawn. Review stage counts and acknowledge in-system reminders within seven days and again within one day. Dates use Philippine time. |
 | Résumé and skills | Maintain your own text summary, skills, tools, coursework and experience. |
-| AI résumé builder | Open Résumé builder, enter career details, and generate a full résumé. Review or edit it, then download Word or use Print / Save PDF. Choose A4 or Short / US Letter. The document uses Arial 12 pt, justified paragraphs and 0.75-inch margins. Header contact fields stay in the browser. Download the draft before leaving the page. |
+| AI résumé builder | Enter career details and generate a draft. Choose the Editorial or Classic design and A4 or Short / US Letter. You can change the design after generation. Review or edit the draft, then download Word or use Print / Save PDF. Both designs use Arial 12 pt, justified body paragraphs and 0.75-inch margins. Header contact fields stay in the browser. Download the draft before leaving the page. |
 | AI skills comparison | Select a saved role with written requirements and compare it with your stated skills. |
 | AI résumé and progress feedback | Request a résumé review, optionally targeted to a role, or a summary of computed counts and upcoming deadlines. Edit, save, discard, regenerate once or report feedback. |
 
