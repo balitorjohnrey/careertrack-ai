@@ -26,6 +26,7 @@ import Public from '../components/Public';
 import { Applications, ApplicationEditor, DeadlinePage, Overview } from '../components/Tracker';
 import Feedback from '../components/Feedback';
 import ResumeBuilder from '../components/ResumeBuilder';
+import { ProfileAvatar } from '../components/ProfilePhoto';
 import { Admin, Profile, Resume } from '../components/Settings';
 
 const nav = [
@@ -110,12 +111,7 @@ function Workspace({ page, id, initial, user, applicationId, aiProviderName, day
       notify(e.message);
     }
   };
-  const name = ws.profile.full_name || 'Student',
-    abbr = name
-      .split(/\s+/)
-      .map((s) => s[0])
-      .slice(0, 2)
-      .join('');
+  const name = ws.profile.full_name || 'Student';
   const label = [...nav, ...more].find((n) => n[0] === page)?.[1];
   const reminderCount = upcoming(ws.applications, day).filter((a) => {
     const days = daysLeft(a.deadline, day);
@@ -174,7 +170,7 @@ function Workspace({ page, id, initial, user, applicationId, aiProviderName, day
         </div>
         <div className="side-bottom">
           <Link href="/profile" className="user-chip">
-            <b>{abbr}</b>
+            <ProfileAvatar name={name} photo={ws.profile.photo_jpeg} />
             <span>
               <strong>{name}</strong>
               <small>{user.demo ? 'Demo workspace' : 'Personal workspace'}</small>

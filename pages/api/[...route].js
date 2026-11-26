@@ -101,6 +101,11 @@ export default async function handler(req, res) {
       case 'profile':
         await rpc(user, 'ct_profile', { data });
         break;
+      case 'profile/photo': {
+        const { prepareProfilePhoto } = await import('../../lib/server/profile-photo.mjs');
+        await rpc(user, 'ct_profile_photo', { photo: await prepareProfilePhoto(data.photo) });
+        break;
+      }
       case 'resume':
         await rpc(user, 'ct_resume', { data });
         break;

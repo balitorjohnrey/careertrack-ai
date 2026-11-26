@@ -5,6 +5,8 @@ import { PGlite } from '@electric-sql/pglite';
 import { initializeLocal, localRPC } from '../lib/server/local.mjs';
 import { buildAIInput, generateDraft } from '../lib/server/ai.mjs';
 import { blankApplication, offsetDate, today, stages } from '../lib/domain.mjs';
+import sharp from 'sharp';
+import { prepareProfilePhoto } from '../lib/server/profile-photo.mjs';
 
 let db;
 before(async () => {
@@ -25,6 +27,29 @@ const record = () => ({
   employer: 'Example Studio',
   deadline: offsetDate(1),
   requirements: 'Figma and user interviews',
+});
+test('profile thumbnails are validated, private to the active owner and removable independently of other details', async () => {
+  const owner = await member(), other = await member();
+  const raw = await sharp({ create: { width: 256, height: 256, channels: 3, background: '#729276' } })
+    .jpeg().toBuffer();
+  const photo = await prepareProfilePhoto(raw.toString('base64'));
+  assert.ok(photo.startsWith('/9j/') && photo.length <= 32768);
+  assert.equal(await prepareProfilePhoto(null), null);
+  await assert.rejects(prepareProfilePhoto(undefined), { status: 400 });
+  await assert.rejects(prepareProfilePhoto('/9j/AAAA'), { status: 400 });
+  assert.equal((await call(owner, 'workspace')).profile.photo_jpeg, null);
+  await call(owner, 'profile_photo', { photo });
+  await call(owner, 'profile', { data: { full_name: 'Jamie', program: 'IT', contact: '', graduation_year: '' } });
+  assert.equal((await call(owner, 'workspace')).profile.photo_jpeg, photo);
+  assert.equal((await call(other, 'workspace')).profile.photo_jpeg, null);
+  await assert.rejects(call(owner, 'profile_photo', { photo: 'https://example.test/photo.png' }), {code: '23514'});
+  await db.query('update public.profiles set suspended=true where id=$1', [owner]);
+  await assert.rejects(call(owner, 'profile_photo', { photo: null }), {code: '42501'});
+  await db.query('update public.profiles set suspended=false where id=$1', [owner]);
+  await call(owner, 'profile_photo', { photo: null });
+  const profile = (await call(owner, 'workspace')).profile;
+  assert.equal(profile.full_name, 'Jamie');
+  assert.equal(profile.photo_jpeg, null);
 });
 test('opportunity, application and reminder changes are owned and atomic', async () => {
   const owner = await member(),

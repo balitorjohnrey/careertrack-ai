@@ -21,7 +21,7 @@ For live AI during local development, set `GROQ_API_KEY` in `.env.local` and res
 
 | Module | What to try |
 | --- | --- |
-| Account and profile | Register, sign in, edit your name, program, optional contact details and graduation year. Export your own workspace as JSON or delete your account in Profile settings. |
+| Account and profile | Edit your name, program, contact details and graduation year. Upload, replace or remove a private profile photo in Profile settings. JPG, PNG and WebP images up to 10 MB are cropped to a square thumbnail. Your workspace export includes the photo, and deleting the account removes it. |
 | Applications | Add an employer, role and requirements or source link. Record location, saved/applied dates, deadline, notes and the résumé version. Search, filter, sort, edit or delete a record. |
 | Stages and deadlines | Move an application through Saved, Applied, Assessment, Interview, Offer, Rejected or Withdrawn. Review stage counts and acknowledge in-system reminders within seven days and again within one day. Dates use Philippine time. |
 | Résumé and skills | Maintain your own text summary, skills, tools, coursework and experience. |
@@ -32,6 +32,8 @@ For live AI during local development, set `GROQ_API_KEY` in `.env.local` and res
 The optional **Administration** screen provides aggregate counts, completeness, reminder acknowledgements, reported-feedback categories, account suspension/restoration with a reason, and ordering of the seven stages. Admin actions are logged. Admins use their own workspace for personal records.
 
 ## Connect the hosted services
+
+For a new project, apply the SQL files in `supabase/migrations` in numbered order. For an existing CareerTrack project with migration 001 already applied, run only `supabase/migrations/002_profile_photo.sql` in the Supabase SQL Editor to enable photos. The local database applies this update automatically.
 
 1. **Supabase.** Create a project your team controls. In its SQL Editor, run `supabase/migrations/001_careertrack.sql` once on a fresh application database. It creates the five application tables, owner-only read policies, scoped database functions and private operational tables for quotas, reminders and audit events. Enable the Data API with the public schema available. Enable email/password authentication. Set the Auth Site URL to your final HTTPS sign-in page and configure permitted redirects for your deployment. Configure confirmation email delivery for your pilot participants. [Supabase password authentication](https://supabase.com/docs/guides/auth/passwords) · [Email delivery](https://supabase.com/docs/guides/auth/auth-smtp)
 2. **Environment.** Copy `.env.example` to `.env.local` for local integration testing. Enter the project URL and publishable key from Supabase. The server uses the signed-in user's token for each database call. No service-role key is required. [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys)

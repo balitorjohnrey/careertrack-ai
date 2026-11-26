@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowDown, ArrowUp, Download, LockKeyhole, Sparkles } from 'lucide-react';
 import { api, ErrorBox, Field, SectionHead, useAction } from './common';
+import ProfilePhoto from './ProfilePhoto';
 export function Resume({ ws, reload, notify }) {
   const { busy, error, run } = useAction();
   return (
@@ -81,6 +82,7 @@ export function Profile({ ws, user, reload, notify }) {
           user.demo ? 'You’re exploring a private demo with fictional records.' : user.email
         }
       />
+      <ProfilePhoto profile={ws.profile} reload={reload} notify={notify} />
       <form
         className="card edit-form"
         onSubmit={(e) => {

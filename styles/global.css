@@ -490,9 +490,11 @@ small,
   flex: 1;
   min-width: 0;
 }
-.user-chip > b {
-  width: 35px;
-  height: 35px;
+.profile-avatar {
+  width: var(--avatar-size, 35px);
+  height: var(--avatar-size, 35px);
+  flex: none;
+  object-fit: cover;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -500,6 +502,17 @@ small,
   color: #f1f7d9;
   font-size: 0.83rem;
 }
+.photo-layout {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+.photo-layout .profile-avatar {
+  --avatar-size: 80px;
+  font-size: 1.5rem;
+}
+.photo-controls { flex: 1 1 220px; min-width: 0; display: grid; gap: 10px; }
 .user-chip span {
   min-width: 0;
 }
