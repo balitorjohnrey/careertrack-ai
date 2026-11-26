@@ -1,6 +1,6 @@
 import { AppError, requireValue, reportReasons, kinds, stages } from '../../lib/domain.mjs';
 import { authenticate, clearSession, getSession, rpc, signOut } from '../../lib/server/backend.mjs';
-import { generateDraft } from '../../lib/server/ai.mjs';
+import { generateDraft, generateResume } from '../../lib/server/ai.mjs';
 
 export const config = { api: { bodyParser: { sizeLimit: '48kb' } } };
 function validateApplication(data) {
@@ -102,6 +102,9 @@ export default async function handler(req, res) {
         break;
       case 'resume':
         await rpc(user, 'ct_resume', { data });
+        break;
+      case 'ai/create-resume':
+        result = await generateResume(user, data, await rpc(user, 'ct_workspace'));
         break;
       case 'reminders':
         requireValue(

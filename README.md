@@ -15,7 +15,7 @@ Open the local address printed in the terminal, usually **http://127.0.0.1:3000*
 
 Local mode stores data in the ignored `.local/postgres` folder on this computer. It uses embedded PostgreSQL (PGlite), the same application migration as the hosted version, password hashing and expiring HTTP-only session cookies. Demo accounts have no sign-in password. Personal accounts can sign out and sign back in. Local data and accounts stay on this machine when you connect Supabase. For a local administration walkthrough, set `CAREERTRACK_LOCAL_ADMIN_EMAIL` in `.env.local` to your own local account email, restart the app and sign in again. This setting applies only to local accounts.
 
-For live feedback during local development, set `GROQ_API_KEY` in `.env.local`, restart the server, and open **AI feedback studio**. The notice shows the provider and the fields used by the selected action. Try all three actions using **Explore the demo** for fictional résumé and application data. Only the generated answer is shown for review. [Groq API keys](https://console.groq.com/keys)
+For live AI during local development, set `GROQ_API_KEY` in `.env.local` and restart the server. Open **Résumé builder** to write a résumé, or **AI feedback studio** to compare skills, review a résumé summary, or summarize application progress. Each tool shows which fields it sends. Choose **Explore the demo** to try these tools with fictional data. [Groq API keys](https://console.groq.com/keys)
 
 ## Student workflows
 
@@ -25,6 +25,7 @@ For live feedback during local development, set `GROQ_API_KEY` in `.env.local`, 
 | Applications | Add an employer, role and requirements or source link. Record location, saved/applied dates, deadline, notes and the résumé version. Search, filter, sort, edit or delete a record. |
 | Stages and deadlines | Move an application through Saved, Applied, Assessment, Interview, Offer, Rejected or Withdrawn. Review stage counts and acknowledge in-system reminders within seven days and again within one day. Dates use Philippine time. |
 | Résumé and skills | Maintain your own text summary, skills, tools, coursework and experience. |
+| AI résumé builder | Open Résumé builder, enter career details, and generate a full résumé. Review or edit it, then download Word or use Print / Save PDF. Choose A4 or Short / US Letter. The document uses Arial 12 pt, justified paragraphs and 0.75-inch margins. Header contact fields stay in the browser. Download the draft before leaving the page. |
 | AI skills comparison | Select a saved role with written requirements and compare it with your stated skills. |
 | AI résumé and progress feedback | Request a résumé review, optionally targeted to a role, or a summary of computed counts and upcoming deadlines. Edit, save, discard, regenerate once or report feedback. |
 
@@ -68,6 +69,6 @@ npm.cmd test
 npm.cmd run build
 ```
 
-The automated suite runs the actual migration in embedded PostgreSQL. It covers ownership, row policies, atomic application edits, reminders, account deletion, administrator permissions, rate limits and AI input minimization. Provider adapter tests use simulated Supabase Auth, Groq and OpenAI responses. Run a real email-confirmation flow and all three AI actions after connecting the team's accounts.
+The automated suite runs the actual migration in embedded PostgreSQL. It covers ownership, row policies, atomic application edits, reminders, account deletion, administrator permissions, rate limits and AI input minimization. Provider adapter tests use simulated Supabase Auth, Groq and OpenAI responses. After connecting the team's accounts, check email confirmation, the three feedback actions, and résumé generation and export.
 
 For pilot measurements, use a dedicated pilot database or compare aggregate snapshots from the start and end of the pilot. The admin screen gives counts for completeness and timely acknowledgements. The team must collect timed-task results and satisfaction responses from consenting participants. Real instructor approval, evidence gathering, teammate review, the signed scope declaration and LMS submission belong to the team.

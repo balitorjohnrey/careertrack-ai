@@ -1,0 +1,80 @@
+.builder-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 18px 20px;
+}
+.builder-toolbar .card-note {
+  flex-basis: 100%;
+}
+.resume-paper {
+  width: 100%;
+  margin: 22px auto 0;
+  padding: clamp(20px, 5vw, 0.75in);
+  background: white;
+  color: black;
+  border: 1px solid var(--line);
+  box-shadow: 0 3px 16px #16372c0c;
+  font:
+    normal 12pt/1.25 Arial,
+    sans-serif;
+  text-align: justify;
+  overflow-wrap: anywhere;
+}
+.paper-a4 {
+  max-width: 210mm;
+  min-height: 297mm;
+}
+.paper-short {
+  max-width: 8.5in;
+  min-height: 11in;
+}
+.resume-paper > * {
+  margin: 0 0 3pt;
+  font: inherit;
+  color: inherit;
+  letter-spacing: normal;
+  text-align: justify;
+  orphans: 2;
+  widows: 2;
+}
+.resume-paper .resume-name,
+.resume-paper .resume-heading {
+  font-weight: bold;
+  break-after: avoid;
+}
+.resume-paper .resume-heading {
+  margin-top: 9pt;
+}
+@media print {
+  body:has(.builder-preview),
+  body:has(.builder-preview) #__next {
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    background: white;
+  }
+  .workspace:has(.builder-preview),
+  .main-work:has(.builder-preview),
+  .content:has(.builder-preview) {
+    display: block;
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+    width: auto;
+    max-width: none;
+  }
+  .workspace:has(.builder-preview) :is(.sidebar, .topbar, .scrim, .toast, .builder-controls) {
+    display: none !important;
+  }
+  .builder-preview .resume-paper {
+    width: auto;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+}

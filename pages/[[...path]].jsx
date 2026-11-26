@@ -9,6 +9,7 @@ import {
   Check,
   ChevronRight,
   FileText,
+  FilePenLine,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -24,6 +25,7 @@ import { api, Brand } from '../components/common';
 import Public from '../components/Public';
 import { Applications, ApplicationEditor, DeadlinePage, Overview } from '../components/Tracker';
 import Feedback from '../components/Feedback';
+import ResumeBuilder from '../components/ResumeBuilder';
 import { Admin, Profile, Resume } from '../components/Settings';
 
 const nav = [
@@ -31,6 +33,7 @@ const nav = [
   ['applications', 'Applications', BriefcaseBusiness],
   ['deadlines', 'Deadlines', CalendarDays],
   ['resume', 'Résumé & skills', FileText],
+  ['resume-builder', 'Résumé builder', FilePenLine],
   ['feedback', 'AI feedback studio', Sparkles],
 ];
 const more = [
@@ -228,6 +231,8 @@ function Workspace({ page, id, initial, user, applicationId, aiProviderName, day
             <DeadlinePage {...shared} />
           ) : page === 'resume' ? (
             <Resume {...shared} />
+          ) : page === 'resume-builder' ? (
+            <ResumeBuilder {...shared} providerName={aiProviderName}/>
           ) : page === 'profile' ? (
             <Profile {...shared} />
           ) : page === 'admin' ? (

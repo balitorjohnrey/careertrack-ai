@@ -10,7 +10,9 @@ export function Resume({ ws, reload, notify }) {
         eyebrow="PROFILE"
         title="Résumé & skills"
         description="Keep the experience and skills you want to use in applications."
-      />
+      >
+        <Link className="button light" href="/resume-builder">Open résumé builder</Link>
+      </SectionHead>
       <form
         className="card edit-form"
         onSubmit={(e) => {
