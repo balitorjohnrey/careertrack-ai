@@ -11,8 +11,9 @@ import {
 import { api, Brand, ErrorBox, Field, useAction } from './common';
 
 export default function Public({ page, mode }) {
-  const { busy, error, run } = useAction();
-  const [confirmation, setConfirmation] = useState(false);
+  const { busy, error, setError, run } = useAction();
+  const [confirmationEmail, setConfirmationEmail] = useState('');
+  const [resendRequested, setResendRequested] = useState(false);
   const signup = page === 'register';
   const demo = () =>
     run(async () => {
@@ -24,8 +25,10 @@ export default function Public({ page, mode }) {
     const data = Object.fromEntries(new FormData(e.currentTarget));
     run(async () => {
       const r = await api(signup ? 'auth/register' : 'auth/login', data);
-      if (r.confirmEmail) setConfirmation(true);
-      else window.location.assign('/dashboard');
+      if (r.confirmEmail) {
+        setResendRequested(false);
+        setConfirmationEmail(data.email.trim());
+      } else window.location.assign('/dashboard');
     });
   };
   return (
@@ -119,17 +122,47 @@ export default function Public({ page, mode }) {
               <b /> CAREERTRACK AI
             </div>
             <h1>
-              {confirmation
+              {confirmationEmail
                 ? 'Check your email'
                 : signup
                   ? 'Create your workspace'
                   : 'Welcome back'}
             </h1>
-            {confirmation ? (
+            {confirmationEmail ? (
               <>
-                <p>Open your confirmation email, then sign in to your workspace.</p>
-                <Link className="button dark" href="/login">
-                  Go to sign in
+                <p>
+                  Open the confirmation link sent to <strong>{confirmationEmail}</strong>, then
+                  return here to sign in. Check your spam or junk folder too.
+                </p>
+                {resendRequested && (
+                  <p role="status">
+                    Confirmation email requested. Check your inbox for the latest link.
+                  </p>
+                )}
+                <ErrorBox message={error} />
+                <button
+                  className="button light"
+                  disabled={busy}
+                  onClick={() =>
+                    run(async () => {
+                      setResendRequested(false);
+                      await api('auth/resend', { email: confirmationEmail });
+                      setResendRequested(true);
+                    })
+                  }
+                >
+                  {busy ? 'Requesting email…' : 'Resend confirmation email'}
+                </button>
+                <Link
+                  className="button dark"
+                  href="/login"
+                  onClick={() => {
+                    setConfirmationEmail('');
+                    setResendRequested(false);
+                    setError('');
+                  }}
+                >
+                  Back to sign in
                 </Link>
               </>
             ) : (

@@ -53,22 +53,23 @@ export default async function handler(req, res) {
         403,
       );
     const data = req.body || {};
-    if (['auth/login', 'auth/register', 'auth/demo'].includes(path)) {
+    if (['auth/login', 'auth/register', 'auth/demo', 'auth/resend'].includes(path)) {
       const action = path.split('/')[1];
       if (action !== 'demo') {
         requireValue(
           typeof data.email === 'string' &&
             data.email.length <= 254 &&
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email),
+            /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim()),
           'Enter a valid email.',
         );
         data.email = data.email.trim().toLowerCase();
-        requireValue(
-          typeof data.password === 'string' &&
-            data.password.length >= (action === 'login' ? 1 : 8) &&
-            data.password.length <= 128,
-          'Use a password with 8–128 characters.',
-        );
+        if (action === 'login' || action === 'register')
+          requireValue(
+            typeof data.password === 'string' &&
+              data.password.length >= (action === 'login' ? 1 : 8) &&
+              data.password.length <= 128,
+            'Use a password with 8–128 characters.',
+          );
         if (action === 'register')
           requireValue(
             typeof data.full_name === 'string' &&
@@ -156,12 +157,8 @@ export default async function handler(req, res) {
   } catch (error) {
     const known = error instanceof AppError;
     if (!known) console.error('CareerTrack request failed', { code: error.code || error.name });
-    return res
-      .status(known ? error.status : 503)
-      .json({
-        error: known
-          ? error.message
-          : 'The workspace is temporarily unavailable. Please try again.',
-      });
+    return res.status(known ? error.status : 503).json({
+      error: known ? error.message : 'The workspace is temporarily unavailable. Please try again.',
+    });
   }
 }
