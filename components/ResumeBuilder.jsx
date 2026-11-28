@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Download, PencilLine, Printer, Sparkles } from 'lucide-react';
 import { api, ErrorBox, Field, SectionHead, useAction } from './common';
+import PortraitResume from './PortraitResume';
+import { squarePhoto } from '../lib/square-photo.mjs';
 import {
   editorialColors,
   papers,
@@ -66,7 +68,7 @@ function DesignPicker({ value, onChange }) {
     <fieldset className="resume-design-picker">
       <legend>Résumé design</legend>
       <div className="design-choices">
-        {['Editorial', 'Classic'].map((label) => {
+        {['Portrait', 'Editorial', 'Classic'].map((label) => {
           const id = label.toLowerCase();
           return (
             <label className="design-choice" key={id}>
@@ -85,6 +87,46 @@ function DesignPicker({ value, onChange }) {
       </div>
     </fieldset>
   );
+}
+
+function PortraitDetails({ value, onChange }) {
+  return <div className="form-grid portrait-details">
+    <Field label="Languages" hint="Optional. Enter one language and proficiency per line.">
+      <textarea rows={3} maxLength={1200} value={value.languages}
+        onChange={(e) => onChange({ ...value, languages: e.target.value })} />
+    </Field>
+    <Field label="References" hint="Optional. Include only the details you want on this résumé.">
+      <textarea rows={3} maxLength={1600} value={value.references}
+        onChange={(e) => onChange({ ...value, references: e.target.value })} />
+    </Field>
+  </div>;
+}
+
+function ResumePhotoPicker({ photo, profilePhoto, onChange, busy, run }) {
+  const input = useRef(null);
+  return <fieldset className="resume-photo-picker">
+    <legend>Résumé photo</legend>
+    <div className="resume-photo-options">
+      {photo && <img src={'data:image/jpeg;base64,' + photo} alt="Selected résumé photo" />}
+      <div>
+        <p className="card-note">2 × 2 inches · JPG, PNG or WebP up to 10 MB</p>
+        <div className="actions">
+          <button type="button" className="button light" disabled={busy}
+            onClick={() => input.current.click()}>{photo ? 'Change photo' : 'Attach photo'}</button>
+          {profilePhoto && profilePhoto !== photo && <button type="button" className="quiet-button"
+            disabled={busy} onClick={() => onChange(profilePhoto)}>Use profile photo</button>}
+          {photo && <button type="button" className="quiet-button" disabled={busy}
+            onClick={() => onChange(null)}>Remove from résumé</button>}
+        </div>
+        <input type="file" accept="image/jpeg,image/png,image/webp" hidden ref={input}
+          aria-label="Choose résumé photo" onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (file) run(async () => onChange(await squarePhoto(file, { pixels: 600 })));
+          }} />
+      </div>
+    </div>
+  </fieldset>;
 }
 
 function ResumePaper({ draft, design, paper }) {
@@ -114,7 +156,7 @@ function ResumePaper({ draft, design, paper }) {
           })}
         </div>
       </header>
-      {resumeBodyParagraphs(draft.sections).map(({ style, text }, i) => {
+      {resumeBodyParagraphs(draft.sections, draft.header).map(({ style, text }, i) => {
         const Tag = style === 'heading' ? 'h3' : 'p';
         return (
           <Tag key={i} className={'resume-' + style}>
@@ -134,6 +176,8 @@ export default function ResumeBuilder({ ws, user, providerName }) {
     phone: '',
     city: '',
     portfolio: '',
+    languages: '',
+    references: '',
   }));
   const [details, setDetails] = useState(() => ({
     summary: ws.resume.summary,
@@ -144,10 +188,15 @@ export default function ResumeBuilder({ ws, user, providerName }) {
     certifications: '',
   }));
   const [paper, setPaper] = useState('a4');
-  const [design, setDesign] = useState('editorial');
+  const [design, setDesign] = useState('portrait');
+  const [photo, setPhoto] = useState(ws.profile.photo_jpeg || null);
   const [draft, setDraft] = useState(null);
   const [view, setView] = useState('details');
   const { busy, error, setError, run } = useAction();
+  const photoPicker = design === 'portrait' && (
+    <ResumePhotoPicker photo={photo} profilePhoto={ws.profile.photo_jpeg}
+      onChange={setPhoto} busy={busy} run={run} />
+  );
 
   function show(next) {
     setError('');
@@ -168,7 +217,7 @@ export default function ResumeBuilder({ ws, user, providerName }) {
   }
   async function downloadWord() {
     const { resumeWordBlob } = await import('../lib/resume-word.mjs');
-    const blob = await resumeWordBlob(draft.header, draft.sections, paper, design);
+    const blob = await resumeWordBlob(draft.header, draft.sections, paper, design, photo);
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -204,8 +253,10 @@ export default function ResumeBuilder({ ws, user, providerName }) {
               <div className="builder-design-panel">
                 <DesignPicker value={design} onChange={setDesign} />
                 <PaperSelect value={paper} onChange={setPaper} />
+                {photoPicker}
               </div>
             </div>
+            <PortraitDetails value={header} onChange={setHeader} />
             <h2>Your background</h2>
             <p className="card-note">
               Fill in the sections that apply to you. Class projects and volunteer work count.
@@ -229,8 +280,8 @@ export default function ResumeBuilder({ ws, user, providerName }) {
               <div>
                 <strong>What goes to {providerName}</strong>
                 <p>
-                  Your target role and the background sections above. Your name and contact fields
-                  are added on this device. Keep personal contact details out of the background
+                  Your target role and the background sections above. Your photo, contact details,
+                  languages and references are added on this device. Keep personal details out of the background
                   notes.
                 </p>
               </div>
@@ -273,6 +324,8 @@ export default function ResumeBuilder({ ws, user, providerName }) {
               value={draft.header}
               onChange={(value) => setDraft({ ...draft, header: value })}
             />
+            <PortraitDetails value={draft.header}
+              onChange={(value) => setDraft({ ...draft, header: value })} />
             {resumeSections.map(({ key, title }) => (
               <Field key={key} label={title}>
                 <textarea
@@ -292,6 +345,7 @@ export default function ResumeBuilder({ ws, user, providerName }) {
           <div className="card builder-toolbar">
             <DesignPicker value={design} onChange={setDesign} />
             <PaperSelect value={paper} onChange={setPaper} />
+            {photoPicker}
             <div className="actions">
               <button className="button dark" disabled={busy} onClick={() => run(downloadWord)}>
                 <Download size={16} /> Download Word
@@ -317,9 +371,11 @@ export default function ResumeBuilder({ ws, user, providerName }) {
       {view === 'preview' && draft && (
         <>
           <style media="print">
-            {'@page { size: ' + papers[paper].css + '; margin: 0.75in; }'}
+            {'@page { size: ' + papers[paper].css + '; margin: ' + (design === 'portrait' ? '0.3in' : '0.75in') + '; }'}
           </style>
-          <ResumePaper draft={draft} design={design} paper={paper} />
+          {design === 'portrait'
+            ? <PortraitResume {...draft} paper={paper} photo={photo} />
+            : <ResumePaper draft={draft} design={design} paper={paper} />}
         </>
       )}
     </div>

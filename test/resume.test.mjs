@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { generateResume } from '../lib/server/ai.mjs';
-import { papers, readResumeDraft, resumeInput, resumeParagraphs } from '../lib/resume.mjs';
+import { papers, portraitSections, readResumeDraft, resumeInput, resumeParagraphs } from '../lib/resume.mjs';
 
 test('résumé generation minimizes provider data, enforces the user quota and validates the complete draft', async (t) => {
   const env = {
@@ -23,6 +23,9 @@ test('résumé generation minimizes provider data, enforces the user quota and v
     name: 'Jules Demo',
     email: user.email,
     portfolio: 'https://private.example.test',
+    languages: 'Private language note',
+    references: 'Private reference',
+    photo: 'private-portrait-data',
     role: 'Design intern',
     skills: 'Figma',
     projects: 'Class project by Jules Demo, jules@example.test',
@@ -71,6 +74,18 @@ test('résumé generation minimizes provider data, enforces the user quota and v
     status: 503,
   });
   assert.equal(calls.at(-1), '/rest/v1/rpc/ct_ai_failure');
+});
+
+test('portrait columns use reviewed details, skip empty sections, and preserve private sidebar text when switching designs', () => {
+  const header = { name: 'Taylor', role: '', phone: '', city: '', email: 't@example.test',
+    portfolio: '', languages: 'English\nFilipino', references: 'Campus library' };
+  const sections = { summary: 'IT student.', skills: 'SQL\nCSS', education: 'BSIT' };
+  const columns = portraitSections(header, sections);
+  assert.deepEqual(columns.contacts, [{ key: 'email', text: header.email }]);
+  assert.deepEqual(columns.side.map((group) => group.lines), [['SQL', 'CSS'], ['English', 'Filipino'], ['Campus library']]);
+  assert.deepEqual(columns.main.map((group) => group.title), ['Profile', 'Education']);
+  assert.deepEqual(resumeParagraphs(header, sections).slice(-5).map((p) => p.text),
+    ['Languages', 'English', 'Filipino', 'References', 'Campus library']);
 });
 
 test('exports use the reviewed header and sections in order and support A4 and short bond', () => {

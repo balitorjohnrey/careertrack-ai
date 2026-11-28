@@ -231,3 +231,121 @@
 .resume-builder .edit-form textarea:focus {
   border-color: #285545;
 }
+.sample-portrait {
+  background:
+    linear-gradient(#cad1d7, #cad1d7) 2px 3px / 6px 6px no-repeat,
+    linear-gradient(#303a4b 0 25%, transparent 25%),
+    linear-gradient(90deg, #e7e8ea 35%, #fff 35%);
+}
+.resume-photo-picker {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.resume-photo-picker legend { padding: 0; font-weight: 600; }
+.resume-photo-options { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 8px; }
+.resume-photo-options img { width: 64px; height: 64px; object-fit: cover; }
+.resume-photo-options .actions { margin: 8px 0 0; gap: 8px; }
+.resume-builder .portrait-details textarea { min-height: 6rem; }
+.portrait-stage { width: 100%; min-width: 0; }
+.design-portrait {
+  --side-width: 2.48in;
+  width: var(--paper-width);
+  max-width: none;
+  min-height: 0;
+  padding: 0.3in;
+  color: var(--ink);
+  line-height: 1.35;
+}
+.portrait-sheet {
+  min-height: calc(var(--paper-height) - 0.62in);
+  background: linear-gradient(to right, var(--rail) var(--side-width), white var(--side-width));
+}
+.portrait-sheet.without-rail { --side-width: 0in; }
+.portrait-banner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 1.65in;
+  padding: 0.28in 0.24in 0.28in calc(var(--side-width) + 0.32in);
+  background: var(--navy);
+  color: white;
+  break-inside: avoid;
+}
+.portrait-banner h2, .portrait-banner p {
+  margin: 0;
+  text-align: left;
+  text-transform: uppercase;
+}
+.portrait-banner h2 { font-size: 26pt; line-height: 1.03; font-weight: 700; }
+.portrait-banner p { margin-top: 7pt; font-size: 14pt; line-height: 1.15; }
+.portrait-columns { display: table; table-layout: fixed; width: 100%; }
+.portrait-side, .portrait-main { display: table-cell; vertical-align: top; }
+.portrait-side {
+  width: var(--side-width);
+  padding: 0.28in 0.20in;
+  background: var(--rail);
+}
+.portrait-photo {
+  display: block;
+  position: relative;
+  width: 2in;
+  height: 2in;
+  max-width: none;
+  margin: -1.35in auto 0.32in;
+  outline: 3pt solid white;
+  border-radius: 0;
+  object-fit: cover;
+}
+.portrait-main { padding: 0.32in 0.19in 0.15in 0.49in; }
+.design-portrait section { margin: 0 0 0.26in; }
+.design-portrait section h3 {
+  margin: 0 0 7pt;
+  padding: 0 0 3pt;
+  border-bottom: 1pt solid var(--navy);
+  color: var(--navy);
+  font-size: 13pt;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 1.15pt;
+  text-transform: uppercase;
+  text-align: left;
+  break-after: avoid;
+}
+.design-portrait section p { margin: 0 0 6pt; }
+.portrait-side p, .portrait-side li { text-align: left; }
+.portrait-side ul { margin: 0; padding-left: 0.16in; }
+.portrait-side li { margin-bottom: 4pt; }
+.portrait-side .portrait-contact { list-style: none; padding: 0; }
+.portrait-contact li { display: flex; align-items: baseline; gap: 5pt; }
+.portrait-contact svg { flex: none; width: 10pt; height: 10pt; align-self: flex-start; margin-top: 2pt; }
+.portrait-contact span { min-width: 0; }
+.portrait-main section { position: relative; }
+.portrait-main section::before {
+  content: ''; position: absolute; left: -0.19in; top: 0.1in; bottom: 1pt;
+  border-left: 0.7pt solid #9ca3ad;
+}
+.portrait-main h3 { position: relative; }
+.portrait-marker {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  left: -0.29in;
+  top: 0;
+  width: 0.21in;
+  height: 0.21in;
+  border-radius: 50%;
+  color: white;
+  background: var(--navy);
+}
+.portrait-marker svg { width: 0.13in; height: 0.13in; }
+@media screen {
+  .design-portrait { zoom: var(--portrait-scale); }
+}
+@media print {
+  .portrait-sheet { min-height: calc(var(--paper-height) - 0.65in); }
+  .portrait-main, .portrait-side { padding-bottom: 0; }
+  .design-portrait section:last-child, .design-portrait section > :last-child { margin-bottom: 0; }
+}

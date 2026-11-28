@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { squarePhoto } from '../lib/square-photo.mjs';
 import { Camera } from 'lucide-react';
 import { api, ErrorBox, useAction } from './common';
 
@@ -17,45 +18,6 @@ export function ProfileAvatar({ name, photo }) {
       {initials}
     </b>
   );
-}
-
-async function makeThumbnail(file) {
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
-    throw new Error('Choose a JPG, PNG, or WebP image.');
-  if (file.size > 10 * 1024 * 1024) throw new Error('Choose a photo smaller than 10 MB.');
-  const url = URL.createObjectURL(file);
-  try {
-    const image = new Image();
-    image.src = url;
-    await image.decode().catch(() => {
-      throw new Error('This image could not be opened. Choose another photo.');
-    });
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 256;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Your browser could not prepare this photo.');
-    const side = Math.min(image.naturalWidth, image.naturalHeight);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, 256, 256);
-    ctx.drawImage(
-      image,
-      (image.naturalWidth - side) / 2,
-      (image.naturalHeight - side) / 2,
-      side,
-      side,
-      0,
-      0,
-      256,
-      256,
-    );
-    for (const quality of [0.84, 0.66, 0.48]) {
-      const jpeg = canvas.toDataURL('image/jpeg', quality).split(',')[1];
-      if (jpeg && jpeg.length <= 44000) return jpeg;
-    }
-    throw new Error('This photo could not be resized. Choose another image.');
-  } finally {
-    URL.revokeObjectURL(url);
-  }
 }
 
 export default function ProfilePhoto({ profile, reload, notify }) {
@@ -92,7 +54,7 @@ export default function ProfilePhoto({ profile, reload, notify }) {
             onChange={(event) => {
               const file = event.target.files?.[0];
               event.target.value = '';
-              if (file) run(async () => setPending(await makeThumbnail(file)));
+              if (file) run(async () => setPending(await squarePhoto(file, { pixels: 256, maxLength: 44000 })));
             }}
           />
           {available && (
